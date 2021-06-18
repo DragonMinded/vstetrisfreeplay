@@ -1,0 +1,66 @@
+Contains patches to apply to ROMs for Nintendo Vs. Tetris to add a
+free play option. This is controlled by DIP 5 (unused in the original
+game). DIP 5 on is free play, DIP 5 off is normal coin mode. The following
+is the "source" to the patches. I did not use an assembler, choosing to
+instead hand-assemble since it was such a trivial patch. Code is commented
+as well. To use this, apply the hex changes to the correct ROMs (for instance,
+0xE350 is ROM e000.6a in MAME offset 0x350, 0xA027 is ROM a000.6c in MAME offset
+0x27) and burn them using an EEPROM writer.
+
+draw_freeplay (0xE350)
+; Stolen mostly from the credits display function. This
+; draws "FREEPLAY" centered on the screeen in place of
+; the credits display.
+A0 00    ; LDY #0x0 (Y register is the count)
+A2 30    ; LDX #0x30 (X register is the char buffer offset)
+B9 75 E3 ; LDA freeplay_text[count] (Grab an ascii character)
+9D 01 04 ; STA 0x431[count * 4] (Place it in the char buffer offset)
+A9 DF    ; LDA #0xDF (Grab the hardcoded Y offset)
+38       ; SEC
+9D 00 04 ; STA 0x430[count * 4] (Store it in the char buffer Y offset)
+B9 7D E3 ; LDA freeplay_positions[count] (Grab the X offset for this char)
+9D 03 04 ; STA 0x433[count * 4] (Store it in the char buffer X offset)
+E8       ; INX (Increment X by 4 to get to next char buffer location)
+E8       ; INX
+E8       ; INX
+E8       ; INX
+C8       ; INY (Add one to the count)
+C0 08    ; CPY #0x8 (Compare against 8, we do the above loop 8 times for "FREEPLAY")
+D0 E5    ; BNE -27 (Jump back to the next ascii character grab.
+A9 32    ; LDA #0x32
+8D 30 05 ; STA 0x530 (Force the credits to "2" so that 1P/2P start works).
+60       ; RTS (Back to the main game loop).
+
+freeplay_text (0xE375)
+46 52 45 45 50 4C 41 59 
+
+freeplay_positions (0xE37D)
+61 69 71 79 81 89 91 99
+
+draw_freeplay_or_credit (0xE385)
+; This just jumps to either the above freeplay text function, or
+; the original credits display function.
+AD 17 40  ; LDA dipsw2_in
+29 10     ; AND 0x10 (check DIP 5 is on)
+D0 03     ; BNE 3
+4C 46 AE  ; JMP 0xAE46 (old credit draw function)
+4C 50 E3  ; JMP 0xE350 (free play draw function)
+
+get_credit_or_freeplay (0xE392)
+; This loads the A register with either the amount of credits or
+; '0' when in freeplay. This has the affect of going back to the
+; attract screen instead of the start game screen when you get a
+; game over in free play mode.
+AD 17 40  ; LDA dipsw2_in
+29 10     ; AND 0x10 (check DIP 5 is on)
+D0 06     ; BNE 6
+AD 30 05  ; LDA #0x0530 (load credit amount into A)
+4C 9B A8  ; JMP 0xA89B
+A9 30     ; LDA #0x30 (load 'zero credits' into A)
+4C 9B A8  ; JMP 0xA89B
+
+Update to new function (0xA027):
+20 85 E3 ; JSR draw_freeplay_or_credit
+
+Update to new free-play check (0xA898):
+4C 92 E3 ; JMP get_credit_or_freeplay
