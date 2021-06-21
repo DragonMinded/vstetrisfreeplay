@@ -9,8 +9,10 @@ as well. To use this, apply the hex changes to the correct ROMs (for instance,
 
 draw_freeplay (0xE350)
 ; Stolen mostly from the credits display function. This
-; draws "FREEPLAY" centered on the screeen in place of
-; the credits display.
+; draws "FREE PLAY" centered on the screeen in place of
+; the credits display. There is no room for a space
+; but fortunately each character has an accompanying X
+; offset so we can position the text with a space.
 A0 00    ; LDY #0x0 (Y register is the count)
 A2 30    ; LDX #0x30 (X register is the char buffer offset)
 B9 75 E3 ; LDA freeplay_text[count] (Grab an ascii character)
@@ -32,10 +34,10 @@ A9 32    ; LDA #0x32
 60       ; RTS (Back to the main game loop).
 
 freeplay_text (0xE375)
-46 52 45 45 50 4C 41 59 
+46 52 45 45 50 4C 41 59
 
 freeplay_positions (0xE37D)
-61 69 71 79 81 89 91 99
+5D 65 6D 75 85 8D 95 9D
 
 draw_freeplay_or_credit (0xE385)
 ; This just jumps to either the above freeplay text function, or
