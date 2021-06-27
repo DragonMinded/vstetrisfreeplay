@@ -5,7 +5,10 @@ is the "source" to the patches. I did not use an assembler, choosing to
 instead hand-assemble since it was such a trivial patch. Code is commented
 as well. To use this, apply the hex changes to the correct ROMs (for instance,
 0xE350 is ROM e000.6a in MAME offset 0x350, 0xA027 is ROM a000.6c in MAME offset
-0x27) and burn them using an EEPROM writer.
+0x27) and burn them using an EEPROM writer. If you would like, you can check
+out <https://github.com/DragonMinded/arcadeutils> to use the `bindiff` utility
+to apply the patches found in the two `.patch` files instead of performing
+the edits manually.
 
 draw_freeplay (0xE350)
 ; Stolen mostly from the credits display function. This
